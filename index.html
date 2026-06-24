@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembuat Undangan Tahlil</title>
+    <link rel="icon" type="image/png" href="assets/LOGO-SF.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+        }
+
+        /* ==================================================
+           KARTU — mengikuti rasio bpjs.jpg (1072 × 672)
+           Kita render di 660 × 413.4 ≈ 660 × 414
+        ================================================== */
+        .kartu {
+            width: 660px;
+            height: 414px;
+            position: relative;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            border-radius: 10px;
+            box-shadow: 0 25px 55px -12px rgba(0, 0, 0, 0.35);
+            flex-shrink: 0;
+        }
+
+        /* Background template penuh */
+        #kartu-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            display: block;
+            z-index: 0;
+        }
+
+        /* Semua overlay di atas gambar */
+        .kartu-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* ── OVERLAY POSITIONS ──────────────────────────── */
+
+        /* ── DATA FIELDS ──────────────────────────────────  */
+        .kl,
+        .kc,
+        .kf {
+            position: absolute;
+            font-size: 19px;
+            font-weight: normal;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .kl {
+            left: 40px;
+        }
+
+        .kc {
+            left: 185px;
+        }
+
+        .kf {
+            left: 200px;
+        }
+
+        #ov-hari, #ov-waktu, #ov-acara, #ov-tempat, #ov-hormat {
+            font-weight: bold;
+        }
+
+        /* ==================================================
+           PAGE LAYOUT
+        ================================================== */
+        .form-card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+        }
+
+        .field-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 5px;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 11px 16px;
+            border: 1.5px solid #d1d5db;
+            border-radius: 12px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .field-input:focus {
+            border-color: #1a5c38;
+        }
+
+        .btn-download {
+            width: 100%;
+            background: linear-gradient(135deg, #1a3728, #245a3f);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 15px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .btn-download:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-download:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 py-10">
+    <div class="max-w-7xl mx-auto px-6">
+        <h1 class="text-3xl font-bold text-center mb-10 text-emerald-900"
+            style="display:flex;align-items:center;justify-content:center;gap:12px;">
+            <img src="assets/LOGO-SF.png" alt="Logo SF"
+                style="height:48px;width:auto;object-fit:contain;vertical-align:middle;">
+            Pembuat Undangan Tahlil
+        </h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
+
+            <!-- ===== FORM ===== -->
+            <div class="form-card">
+                <h2 class="text-lg font-bold mb-6 text-emerald-800">Isi Data Undangan</h2>
+                <div style="display:flex;flex-direction:column;gap:18px;">
+
+                    <div>
+                        <label class="field-label">Hari / Tanggal</label>
+                        <input id="hari" type="text" class="field-input" value="Kamis, 1 Januari 2026">
+                    </div>
+
+                    <div>
+                        <label class="field-label">Waktu</label>
+                        <input id="waktu" type="text" class="field-input" value="18.00 WIB (Ba'da Maghrib)">
+                    </div>
+
+                    <div>
+                        <label class="field-label">Acara</label>
+                        <input id="acara" type="text" class="field-input" value="Tahlil 7 Hari">
+                    </div>
+
+                    <div>
+                        <label class="field-label">Tempat</label>
+                        <textarea id="tempat" rows="2" class="field-input"
+                            style="resize:vertical;">Kediaman Bpk. Fulan</textarea>
+                    </div>
+
+                    <div>
+                        <label class="field-label">Hormat Kami</label>
+                        <input id="hormat_kami" type="text" class="field-input" value="Keluarga Besar Bpk. Fulan">
+                    </div>
+
+                    <div style="padding-top:8px;">
+                        <button class="btn-download" onclick="downloadKartu()">
+                            ⬇️ DOWNLOAD UNDANGAN SEBAGAI JPG
+                        </button>
+                    </div>
+
+                    <p style="font-size:11px;color:#9ca3af;text-align:center;">
+                        Preview berubah secara real-time
+                    </p>
+                </div>
+            </div>
+
+            <!-- ===== PREVIEW KARTU ===== -->
+            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:16px;">
+
+                <div id="preview-container" class="kartu">
+
+                    <!-- Template Tahlil sebagai background -->
+                    <img src="assets/TAHLIL.jpg" id="kartu-bg" alt="Template Tahlil">
+
+                    <!-- Overlay data -->
+                    <div class="kartu-overlay">
+
+                        <!-- LABELS & COLONS -->
+                        <span class="kl" style="top: 145px;">Hari / Tanggal</span>
+                        <span class="kc" style="top: 145px;">:</span>
+                        <span class="kf" id="ov-hari" style="top: 145px;">Kamis, 1 Januari 2026</span>
+
+                        <span class="kl" style="top: 175px;">Waktu</span>
+                        <span class="kc" style="top: 175px;">:</span>
+                        <span class="kf" id="ov-waktu" style="top: 175px;">18.00 WIB (Ba'da Maghrib)</span>
+
+                        <span class="kl" style="top: 205px;">Acara</span>
+                        <span class="kc" style="top: 205px;">:</span>
+                        <span class="kf" id="ov-acara" style="top: 205px;">Tahlil 7 Hari</span>
+
+                        <span class="kl" style="top: 235px;">Tempat</span>
+                        <span class="kc" style="top: 235px;">:</span>
+                        <span class="kf" id="ov-tempat" style="top: 235px;">Kediaman Bpk. Fulan</span>
+
+                        <!-- Hormat Kami (Center Bottom) -->
+                        <div style="position: absolute; bottom: 30px; width: 100%; text-align: center; color: #111; font-size: 19px; font-family: Arial, Helvetica, sans-serif; line-height: 1.3;">
+                            <div style="font-weight: normal; margin-bottom: 5px;">Hormat Kami,</div>
+                            <div id="ov-hormat" style="font-weight: bold;">Keluarga Besar Bpk. Fulan</div>
+                        </div>
+                    </div>
+                </div>
+
+                <p style="font-size:11px;color:#9ca3af;max-width:380px;">
+                    Preview berubah secara real-time saat mengisi form.<br>
+                    Klik tombol <strong>Download</strong> untuk menyimpan sebagai JPG siap cetak.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ─────────────────────────────────────────────────────
+           Update semua field preview
+        ───────────────────────────────────────────────────── */
+        function updatePreview() {
+            document.getElementById('ov-hari').textContent = document.getElementById('hari').value || '';
+            document.getElementById('ov-waktu').textContent = document.getElementById('waktu').value || '';
+            document.getElementById('ov-acara').textContent = document.getElementById('acara').value || '';
+            document.getElementById('ov-tempat').textContent = document.getElementById('tempat').value || '';
+            document.getElementById('ov-hormat').textContent = document.getElementById('hormat_kami').value || '';
+        }
+
+        /* ─────────────────────────────────────────────────────
+           Download sebagai JPG (scale 3× agar tajam dicetak)
+        ───────────────────────────────────────────────────── */
+        function downloadKartu() {
+            const kartu = document.getElementById('preview-container');
+            const acara = document.getElementById('acara').value || 'Tahlil';
+
+            html2canvas(kartu, {
+                scale: 3,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff',
+                logging: false
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Undangan_${acara.replace(/\s+/g, '_')}.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 1.0);
+                link.click();
+            });
+        }
+
+        /* ─────────────────────────────────────────────────────
+           Event listeners — update saat user mengetik
+        ───────────────────────────────────────────────────── */
+        function setupListeners() {
+            document.querySelectorAll('input, textarea').forEach(el => {
+                el.addEventListener('input', updatePreview);
+                el.addEventListener('change', updatePreview);
+            });
+        }
+
+        window.onload = function () {
+            updatePreview();   // tampilkan nilai default
+            setupListeners();
+            console.log('%c✅ Undangan Maker siap', 'color:#10b981;font-weight:bold');
+        };
+    </script>
+</body>
+
+</html>
