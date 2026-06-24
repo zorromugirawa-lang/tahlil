@@ -142,6 +142,50 @@
         .btn-download:active {
             transform: translateY(0);
         }
+
+        /* ==================================================
+           PRINT F4 LAYOUT
+        ================================================== */
+        @media print {
+            body>*:not(#print-area) {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+                margin: 0;
+                padding: 0;
+            }
+
+            #print-area {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: repeat(5, 1fr);
+                gap: 2px;
+                width: 215mm;
+                height: 330mm;
+                /* Ukuran penuh F4, namun margin kita atur sendiri via padding */
+                box-sizing: border-box;
+                padding: 5mm;
+                /* Margin sempit: 5mm di semua sisi */
+                margin: 0 auto;
+            }
+
+            #print-area img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                border: 1px dashed #ccc;
+                box-sizing: border-box;
+            }
+
+            @page {
+                size: 215mm 330mm;
+                /* F4 paper size */
+                margin: 0;
+                /* Nol-kan margin dari sistem browser */
+            }
+        }
     </style>
 </head>
 
@@ -191,20 +235,34 @@
                         <button class="btn-download" onclick="downloadKartu()">
                             ⬇️ DOWNLOAD UNDANGAN SEBAGAI JPG
                         </button>
+
+                        <button class="btn-download" style="background: linear-gradient(135deg, #0f766e, #042f2e);"
+                            id="btn-download-f4" onclick="downloadF4()">
+                            ⬇️ DOWNLOAD F4 (JPG)
+                        </button>
                         <a href="https://tamplat.my.id/" target="_blank" class="btn-download"
                             style="background: linear-gradient(135deg, #1e3a8a, #2563eb); text-decoration: none;">
                             🔗 TEMPLATE BPJS
                         </a>
                     </div>
 
-                    <p style="font-size:11px;color:#9ca3af;text-align:center;">
-                        Preview berubah secara real-time
-                    </p>
                 </div>
             </div>
 
-            <!-- ===== PREVIEW KARTU ===== -->
-            <div style="display:flex;flex-direction:column;align-items:flex-start;gap:16px;">
+            <!-- ===== LIVE F4 PREVIEW ===== -->
+            <div style="display:flex; flex-direction:column; align-items:center; gap:16px; width: 100%;">
+                <h2 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2">Preview Cetak F4</h2>
+                <div style="width: 488px; height: 744px; position: relative;">
+                    <div id="live-f4-grid" style="position: absolute; top: 0; left: 0; width: 812px; height: 1240px; transform: scale(0.6); transform-origin: top left; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(5, 1fr); gap: 2px; padding: 19px; background: white; box-shadow: 0 10px 40px rgba(0,0,0,0.15); box-sizing: border-box;">
+                    </div>
+                </div>
+                <p style="font-size:11px;color:#9ca3af;text-align:center;max-width:480px;">
+                    Tampilan miniatur layout F4 (isi 10).<br>Klik <strong>PRINT F4</strong> untuk langsung mencetak.
+                </p>
+            </div>
+
+            <!-- ===== PREVIEW KARTU (Sembunyi) ===== -->
+            <div style="position: absolute; left: -9999px; top: -9999px;">
 
                 <div id="preview-container" class="kartu">
 
@@ -240,10 +298,6 @@
                     </div>
                 </div>
 
-                <p style="font-size:11px;color:#9ca3af;max-width:380px;">
-                    Preview berubah secara real-time saat mengisi form.<br>
-                    Klik tombol <strong>Download</strong> untuk menyimpan sebagai JPG siap cetak.
-                </p>
             </div>
         </div>
     </div>
@@ -253,11 +307,43 @@
            Update semua field preview
         ───────────────────────────────────────────────────── */
         function updatePreview() {
-            document.getElementById('ov-hari').textContent = document.getElementById('hari').value || '';
-            document.getElementById('ov-waktu').textContent = document.getElementById('waktu').value || '';
-            document.getElementById('ov-acara').textContent = document.getElementById('acara').value || '';
-            document.getElementById('ov-tempat').textContent = document.getElementById('tempat').value || '';
-            document.getElementById('ov-hormat').textContent = document.getElementById('hormat_kami').value || '';
+            document.getElementById('ov-hari').innerText = document.getElementById('hari').value || '';
+            document.getElementById('ov-waktu').innerText = document.getElementById('waktu').value || '';
+            document.getElementById('ov-acara').innerText = document.getElementById('acara').value || '';
+            document.getElementById('ov-tempat').innerText = document.getElementById('tempat').value || '';
+            document.getElementById('ov-hormat').innerText = document.getElementById('hormat_kami').value || '';
+
+            // Update live F4 preview
+            const f4Box = document.getElementById('live-f4-grid');
+            if (f4Box) {
+                f4Box.innerHTML = '';
+                const master = document.getElementById('preview-container');
+                for (let i = 0; i < 10; i++) {
+                    let wrapper = document.createElement('div');
+                    wrapper.style.position = 'relative';
+                    wrapper.style.width = '100%';
+                    wrapper.style.height = '100%';
+                    wrapper.style.overflow = 'hidden';
+                    wrapper.style.border = '1px dashed #ccc';
+                    wrapper.style.boxSizing = 'border-box';
+
+                    let clone = master.cloneNode(true);
+                    clone.removeAttribute('id');
+                    clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id')); // Mencegah duplikat ID
+                    clone.style.position = 'absolute';
+                    clone.style.top = '0';
+                    clone.style.left = '0';
+                    clone.style.transform = 'scale(0.574)';
+                    clone.style.transformOrigin = 'top left';
+                    clone.style.margin = '0';
+                    clone.style.boxShadow = 'none';
+                    clone.style.border = 'none';
+                    clone.style.borderRadius = '0';
+                    
+                    wrapper.appendChild(clone);
+                    f4Box.appendChild(wrapper);
+                }
+            }
         }
 
         /* ─────────────────────────────────────────────────────
@@ -278,6 +364,43 @@
                 link.download = `Undangan_${acara.replace(/\s+/g, '_')}.jpg`;
                 link.href = canvas.toDataURL('image/jpeg', 1.0);
                 link.click();
+            });
+        }
+
+
+
+        /* ─────────────────────────────────────────────────────
+           Download F4 (JPG)
+        ───────────────────────────────────────────────────── */
+        function downloadF4() {
+            const f4Grid = document.getElementById('live-f4-grid');
+            const btn = document.getElementById('btn-download-f4');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳ Memproses...';
+
+            // Simpan transform awal lalu matikan sejenak agar kualitas tangkapan maksimal
+            const originalTransform = f4Grid.style.transform;
+            f4Grid.style.transform = 'none';
+
+            html2canvas(f4Grid, {
+                scale: 2, // Resolusi tinggi
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                logging: false
+            }).then(canvas => {
+                // Kembalikan ukuran aslinya
+                f4Grid.style.transform = originalTransform;
+                
+                const link = document.createElement('a');
+                link.download = `Undangan_F4_Isi_10.jpg`;
+                link.href = canvas.toDataURL('image/jpeg', 0.9);
+                link.click();
+                
+                btn.innerHTML = originalText;
+            }).catch(err => {
+                f4Grid.style.transform = originalTransform;
+                btn.innerHTML = originalText;
+                console.error("Gagal mendownload F4: ", err);
             });
         }
 
